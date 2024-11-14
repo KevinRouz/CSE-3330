@@ -1,27 +1,21 @@
-import mysql from 'mysql';
-import { userAgent } from 'next/server';
+import { NextApiRequest, NextApiResponse } from 'next';
+import db from '../../../lib/db';
 
-export default function handler(req, res)
-{
-    const {id} = req.query;
-    const connection = mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD, 
-        database: process.env.DB_NAME,
-    });
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { id } = req.query;
 
-    connection.query(
-        'SELECT * FROM Items WHERE itemID = ? OR itemName = ?'
-        [id, id],
-        (err, results) => {
-            if (err){
-                res.status(500).json({error: err.message});
-            } 
-            else {
-                res.status(200).json(results);
-            }
-        }
+  try {
+    const stmt = db.prepare(
+      `SELECT * FROM Items WHERE itemId = ? OR itemName = ?`
     );
-    connection.end();
+    const result = stmt.get(id, id);
+
+    if (result) {
+      res.status(200).json(result);
+    } else {
+      res.status(404).json({ message: 'Item not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 }
