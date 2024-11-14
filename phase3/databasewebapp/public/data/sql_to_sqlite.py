@@ -1,7 +1,7 @@
 import sqlite3
 
 # Open SQLite database connection
-conn = sqlite3.connect("project2.sqlite")
+conn = sqlite3.connect("data.sqlite")
 cursor = conn.cursor()
 
 with open("project2.sql", "r") as sql_file:
