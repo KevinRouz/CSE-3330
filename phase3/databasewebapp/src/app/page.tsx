@@ -7,62 +7,137 @@ export default function Home() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [result, setResult] = useState<any>(null);
+  const [data, setData] = useState("");
+  const [showItemDetails, setShowItemDetails] = useState(false);
 
   const handleDisplay = async () => {
     try {
-      const res = await fetch(`/api/items?itemId=${itemId}`);
-      
-      if (!res.ok) {
-        const errorData = await res.json();
-        console.error("Error response:", errorData);
-        setResult(errorData.error || "An error occurred while retrieving the item.");
+      const queryParam = itemId || name; // Check if either itemId or name is provided
+      if (!queryParam) {
+        setResult("Please provide either an Item ID or Name.");
+        setShowItemDetails(false);
         return;
       }
-      
-      const data = await res.json();
-      console.log("Response data:", data); // Log the data received from the backend
-      setResult(data);
+  
+      const res = await fetch(`/api/items?query=${queryParam}`);
+  
+      const responseJson = await res.json();
+  
+      if (res.ok) {
+        const { message, data } = responseJson;
+        setResult(message); // Set the message as the result
+        setShowItemDetails(true); // Show item details only if fetch is successful
+        setData(data);
+      } else {
+        const { error } = responseJson;
+        setResult(error); // Set the error message
+        setShowItemDetails(false); // Hide item details if there's an error
+      }
     } catch (error) {
       console.error("Error fetching item:", error);
       setResult("An error occurred while fetching the item details.");
+      setShowItemDetails(false); // Hide item details on error
     }
+    handleClear();
   };
-
+  
   const handleInsert = async () => {
-    console.log({ name, price, description }); // Check if this logs correctly
-    const res = await fetch("/api/insert", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name, price, description }),
-    });
-    const data = await res.json();
-    setResult(data.message || data.error);
+    try {
+      console.log({ name, price, description }); // Check if this logs correctly
+      const res = await fetch("/api/insert", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, price, description }),
+      });
+  
+      const responseJson = await res.json();
+  
+      if (res.ok) {
+        const { message, data } = responseJson;
+        setResult(message); // Set the result message
+        setData(data);
+        setShowItemDetails(true);
+      } else {
+        const { error } = responseJson;
+        setResult(error); // Set the error message
+        setShowItemDetails(false);
+      }
+    } catch (error) {
+      console.error("Error inserting item:", error);
+      setResult("An error occurred while inserting the item.");
+      setShowItemDetails(false); // Hide item details on error
+    }
+    handleClear();
   };
+  
   const handleUpdate = async () => {
-    const res = await fetch("/api/update", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ itemId, name, price, description }),
-    });
-    const data = await res.json();
-    setResult(data.message || data.error);
+    try {
+      const res = await fetch("/api/update", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ itemId, name, price, description }),
+      });
+  
+      const responseJson = await res.json();
+  
+      if (res.ok) {
+        const { message, data } = responseJson;
+        setResult(message); // Set the result message
+        setData(data);
+        setShowItemDetails(true);
+      } else {
+        const { error } = responseJson;
+        setResult(error); // Set the error message
+        setShowItemDetails(false);
+      }
+    } catch (error) {
+      console.error("Error updating item:", error);
+      setResult("An error occurred while updating the item.");
+      setShowItemDetails(false); // Hide item details on error
+    }
+    handleClear();
+  };
+  
+  const handleDelete = async () => {
+    try {
+      const res = await fetch(`/api/delete?itemId=${itemId}`, {
+        method: "DELETE",
+      });
+  
+      const responseJson = await res.json();
+  
+      if (res.ok) {
+        const { message, data } = responseJson;
+        setResult(message); // Set the success message
+        setData(data); // Set the deleted item details
+        setShowItemDetails(true);
+      } else {
+        const { error } = responseJson;
+        setResult(error); // Set the error message
+        setShowItemDetails(false);
+      }
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      setResult("An error occurred while deleting the item.");
+      setShowItemDetails(false); // Hide item details on error
+    }
+    handleClear();
   };
 
-  const handleDelete = async () => {
-    const res = await fetch(`/api/delete?itemId=${itemId}`, {
-      method: "DELETE",
-    });
-    const data = await res.json();
-    setResult(data.message || data.error);
+  const handleClear = () => {
+    setItemId("");
+    setName("");
+    setPrice("");
+    setDescription("");
   };
 
   // Render the item details as a table
   const renderItemDetails = (item: any) => {
-    if (!item) return null;
+    if (!item || !showItemDetails) return null;
 
     return (
       <table className="min-w-full mt-4 border-collapse text-black">
@@ -154,7 +229,7 @@ export default function Home() {
           </div>
         )}
 
-        {renderItemDetails(result)}
+        {renderItemDetails(data)}
       </div>
     </div>
   );

@@ -11,13 +11,23 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    const result = await db.run(`DELETE FROM item WHERE iId = ?`, [itemId]);
+    const itemResult = await db.get(`SELECT * FROM item WHERE iId = ?`, [itemId]);
 
-    if (result.changes === 0) {
+    if (!itemResult) {
       return NextResponse.json({ error: "Item not found." }, { status: 404 });
     }
 
-    return NextResponse.json({ message: "Item deleted successfully!" }, { status: 200 });
+    const deleteResult = await db.run(`DELETE FROM item WHERE iId = ?`, [itemId]);
+
+    if (deleteResult.changes === 0) {
+      return NextResponse.json({ error: "Item not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      message: "Item deleted successfully!",
+      data: itemResult, 
+    }, { status: 200 });
+
   } catch (error) {
     console.error("Delete error:", error);
     return NextResponse.json({ error: "Failed to delete item." }, { status: 500 });

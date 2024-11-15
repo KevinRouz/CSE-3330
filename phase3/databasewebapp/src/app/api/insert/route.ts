@@ -12,11 +12,26 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // Insert the new item into the database
     await db.run(
       `INSERT INTO item (Iname, Sprice, Idescription) VALUES (?, ?, ?)`,
       [name, price, description]
     );
-    return NextResponse.json({ message: "Item inserted successfully!" }, { status: 201 });
+
+    const url = new URL('/api/items', req.url);
+    url.searchParams.append('query', name); 
+
+    const insertedItemResponse = await fetch(url);
+    const insertedItemData = await insertedItemResponse.json();
+
+    if (insertedItemResponse.ok) {
+      return NextResponse.json({
+        message: "Item inserted and retrieved successfully!",
+        data: insertedItemData.data, 
+      }, { status: 201 });
+    } else {
+      return NextResponse.json({ error: "Failed to retrieve inserted item." }, { status: 500 });
+    }
   } catch (error) {
     console.error("Insert error:", error);
     return NextResponse.json({ error: "Failed to insert item." }, { status: 500 });
