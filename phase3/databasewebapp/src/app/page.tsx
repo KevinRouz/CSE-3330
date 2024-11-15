@@ -6,6 +6,7 @@ export default function Home() {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [result, setResult] = useState<any>(null);
   const [data, setData] = useState("");
   const [showItemDetails, setShowItemDetails] = useState(false);
@@ -136,6 +137,7 @@ export default function Home() {
   };
 
   // Render the item details as a table
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderItemDetails = (item: any) => {
     if (!item || !showItemDetails) return null;
 
